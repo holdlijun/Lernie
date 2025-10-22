@@ -12,7 +12,7 @@ const state = {
   autoPlayEnabled: false,
   notionAutoSave: false,
   panelPinned: false,
-  panelPosition: { ...PANEL_DEFAULT_POSITION },
+  panelPosition: null,
   notionConfigOk: false
 };
 
@@ -167,6 +167,11 @@ function createTrigger() {
 function createPanel() {
   const panel = document.createElement("div");
   panel.className = "wordmate-panel";
+  panel.style.position = "fixed";
+  panel.style.display = "none";
+  panel.style.top = "50%";
+  panel.style.left = "50%";
+  panel.style.transform = "translate(-50%, -50%)";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-live", "polite");
   panel.innerHTML = `
@@ -352,35 +357,39 @@ function openPanelAtSelection() {
 
 function positionPanelNearSelection() {
   if (!dom.panel) return;
-  const rect = state.selectionRect;
-  const scrollX = window.scrollX;
-  const scrollY = window.scrollY;
-  if (!state.panelPinned && rect) {
-    const panelWidth = 360;
-    const panelHeight = 320;
-    let top = rect.bottom + scrollY + 12;
-    let left = rect.left + scrollX;
-    if (top + panelHeight > scrollY + window.innerHeight) {
-      top = rect.top + scrollY - panelHeight - 12;
-    }
-    if (left + panelWidth > scrollX + window.innerWidth) {
-      left = scrollX + window.innerWidth - panelWidth - 24;
-    }
-    state.panelPosition = { x: Math.max(left, 12 + scrollX), y: Math.max(top, 12 + scrollY) };
+
+  if (state.panelPinned && state.panelPosition) {
+    const { x = 0, y = 0 } = state.panelPosition;
+    dom.panel.style.transform = "";
+    dom.panel.style.left = `${x}px`;
+    dom.panel.style.top = `${y}px`;
+    return;
   }
 
-  dom.panel.style.top = `${state.panelPosition.y}px`;
-  dom.panel.style.left = `${state.panelPosition.x}px`;
+  const centerX = window.scrollX + window.innerWidth / 2;
+  const centerY = window.scrollY + window.innerHeight / 2;
+
+  dom.panel.style.left = `${centerX}px`;
+  dom.panel.style.top = `${centerY}px`;
+  dom.panel.style.transform = "translate(-50%, -50%)";
+  state.panelPosition = null;
 }
 
 function showPanel() {
-  dom.panel?.classList.add("wordmate-visible");
+  if (!dom.panel) return;
+
+  positionPanelNearSelection();
+  dom.panel.style.display = "flex";
+  dom.panel.classList.add("wordmate-visible");
   document.addEventListener("mousedown", handleOutsideClick, true);
   document.addEventListener("keydown", handleGlobalKey);
 }
 
 function hidePanel() {
-  dom.panel?.classList.remove("wordmate-visible");
+  if (!dom.panel) return;
+
+  dom.panel.classList.remove("wordmate-visible");
+  dom.panel.style.display = "none";
   hideTrigger();
   document.removeEventListener("mousedown", handleOutsideClick, true);
   document.removeEventListener("keydown", handleGlobalKey);
@@ -421,7 +430,10 @@ function togglePanelPinned() {
   if (state.panelPinned && dom.panel) {
     const left = parseFloat(dom.panel.style.left) || dom.panel.offsetLeft || 0;
     const top = parseFloat(dom.panel.style.top) || dom.panel.offsetTop || 0;
+    dom.panel.style.transform = "";
     state.panelPosition = { x: left, y: top };
+  } else {
+    state.panelPosition = null;
   }
   updatePinVisualState();
   if (!state.panelPinned) {
@@ -865,6 +877,7 @@ function enablePanelDrag(header) {
     isDragging = true;
     startX = event.clientX - dom.panel.offsetLeft;
     startY = event.clientY - dom.panel.offsetTop;
+    dom.panel.style.transform = "";
     document.addEventListener("mousemove", onDrag);
     document.addEventListener("mouseup", onStopDrag);
   });
@@ -873,6 +886,7 @@ function enablePanelDrag(header) {
     if (!isDragging || !dom.panel) return;
     const x = event.clientX - startX;
     const y = event.clientY - startY;
+    dom.panel.style.transform = "";
     dom.panel.style.left = `${x}px`;
     dom.panel.style.top = `${y}px`;
     state.panelPosition = { x, y };
