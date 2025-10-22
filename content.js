@@ -45,6 +45,23 @@ const PART_OF_SPEECH_LABELS = {
   auxiliaryverb: "\u52a9\u52a8\u8bcd"
 };
 
+const PART_OF_SPEECH_COLORS = {
+  noun: "#3b82f6",      // 蓝色 - 名词
+  verb: "#ef4444",      // 红色 - 动词
+  adjective: "#10b981",  // 绿色 - 形容词
+  adverb: "#f59e0b",    // 橙色 - 副词
+  pronoun: "#8b5cf6",   // 紫色 - 代词
+  preposition: "#06b6d4", // 青色 - 介词
+  conjunction: "#84cc16", // 青绿色 - 连词
+  interjection: "#f97316", // 橙红色 - 感叹词
+  determiner: "#6366f1", // 靛蓝色 - 限定词
+  article: "#14b8a6",   // 蓝绿色 - 冠词
+  prefix: "#64748b",    // 灰色 - 前缀
+  suffix: "#64748b",    // 灰色 - 后缀
+  phrasalverb: "#dc2626", // 深红色 - 动词短语
+  auxiliaryverb: "#b91c1c" // 深红色 - 助动词
+};
+
 function formatPartOfSpeech(value) {
   if (!value) {
     return "\u8bcd\u6027";
@@ -53,20 +70,87 @@ function formatPartOfSpeech(value) {
   return PART_OF_SPEECH_LABELS[normalized] || value;
 }
 
+function getPartOfSpeechColor(value) {
+  if (!value) {
+    return "#64748b"; // 默认灰色
+  }
+  const normalized = value.toLowerCase().replace(/[\s-]+/g, "");
+  return PART_OF_SPEECH_COLORS[normalized] || "#64748b";
+}
+
 function containsChinese(text = "") {
   return /[\u4e00-\u9fff]/.test(text);
 }
 
+function isExtensionContextValid() {
+  try {
+    return chrome.runtime && chrome.runtime.id;
+  } catch (error) {
+    return false;
+  }
+}
+
+function handleExtensionContextInvalidated() {
+  console.warn("[WordMate] Extension context invalidated, attempting to reinitialize...");
+  
+  // 隐藏面板和触发器
+  hidePanel();
+  hideTrigger();
+  
+  // 清理状态
+  state.selectionText = "";
+  state.selectionContext = "";
+  state.selectionRect = null;
+  state.lastLookup = null;
+  
+  // 显示提示信息
+  showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
+  
+  // 尝试重新初始化（延迟执行）
+  setTimeout(() => {
+    if (isExtensionContextValid()) {
+      console.log("[WordMate] Extension context restored, reinitializing...");
+      initialize();
+    }
+  }, 1000);
+}
+
 function selectChineseTranslations(values = [], fallback = "") {
-  const unique = [...new Set(values.map((item) => (item || "").trim()).filter(Boolean))];
+  const collected = [];
+  values.forEach((value) => {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (!text) {
+      return;
+    }
+    const segments = splitChineseText(text);
+    if (segments.length) {
+      segments.forEach((segment) => collected.push(segment));
+    } else {
+      collected.push(text);
+    }
+  });
+  const unique = Array.from(new Set(collected.filter(Boolean)));
   const chinese = unique.filter((item) => containsChinese(item));
   if (chinese.length) {
     return chinese;
   }
-  if (fallback && containsChinese(fallback)) {
-    return [fallback];
+  if (fallback) {
+    const fallbackSegments = splitChineseText(fallback);
+    if (fallbackSegments.length) {
+      return Array.from(new Set(fallbackSegments));
+    }
+    if (containsChinese(fallback)) {
+      return [fallback];
+    }
   }
   return unique;
+}
+
+function splitChineseText(text) {
+  return String(text)
+    .split(/[\u3001\u3002\uff0c\uff1b\uff1a\uff0f,;\\ufffd\\ufffd\\ufffd\\ufffd\/]/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
 }
 
 function createTrigger() {
@@ -92,7 +176,7 @@ function createPanel() {
         <p class="wordmate-panel-phonetic" id="wordmate-phonetic"></p>
       </div>
       <button class="wordmate-icon-button" id="wordmate-audio-button" title="\u64ad\u653e\u53d1\u97f3 (Shift+P)" type="button">\uD83D\uDD0A</button>
-      <button class="wordmate-icon-button" id="wordmate-pin-button" title="\u56fa\u5b9a\u9762\u677f" type="button">\u56fa\u5b9a</button>
+      <button class="wordmate-icon-button" id="wordmate-pin-button" title="\u56fa\u5b9a\u9762\u677f" type="button">📌</button>
       <button class="wordmate-icon-button" id="wordmate-close-button" title="\u5173\u95ed (Esc)" type="button">\u00d7</button>
     </div>
     <div class="wordmate-tabs" role="tablist">
@@ -323,7 +407,7 @@ function handleGlobalKey(event) {
 function updatePinVisualState() {
   const pinButton = dom.panel?.querySelector("#wordmate-pin-button");
   if (pinButton) {
-    pinButton.textContent = state.panelPinned ? "\u53d6\u6d88" : "\u56fa\u5b9a";
+    pinButton.textContent = "📌";
     pinButton.title = state.panelPinned ? "\u53d6\u6d88\u56fa\u5b9a" : "\u56fa\u5b9a\u9762\u677f";
     pinButton.setAttribute("aria-pressed", state.panelPinned ? "true" : "false");
   }
@@ -363,6 +447,13 @@ function handleTabSwitch(event) {
 }
 
 async function lookupSelection() {
+  // 检查扩展上下文是否有效
+  if (!isExtensionContextValid()) {
+    console.error("[WordMate] Extension context invalidated, please reload the page");
+    handleExtensionContextInvalidated();
+    return;
+  }
+  
   const payload = {
     text: state.selectionText,
     context: state.selectionContext,
@@ -388,7 +479,11 @@ async function lookupSelection() {
     }
   } catch (error) {
     console.error("[WordMate] Lookup failed", error);
-    showToast("\u67e5\u8be2\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5");
+    if (error.message.includes("Extension context invalidated")) {
+      handleExtensionContextInvalidated();
+    } else {
+      showToast("\u67e5\u8be2\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5");
+    }
   } finally {
     setPanelLoading(false);
   }
@@ -405,10 +500,10 @@ function setPanelLoading(isLoading) {
 }
 
 function renderLookupResult(result) {
-  const { word, translation, definitions, phonetic, examples, audio, context, grammar } = result;
+  const { word, translation, translations = [], definitions, phonetic, examples, audio, context, grammar } = result;
   dom.panel.querySelector("#wordmate-word").textContent = word || state.selectionText;
   dom.panel.querySelector("#wordmate-phonetic").textContent = phonetic || "";
-  renderDefinitions(definitions, translation);
+  renderDefinitions(definitions, translation, translations || []);
   renderContext(context);
   renderGrammar(grammar);
 
@@ -424,25 +519,87 @@ function renderLookupResult(result) {
   audioButton.disabled = !audio;
 }
 
-function renderDefinitions(definitions, fallback) {
+function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
+  if (!dom.translationBlock) {
+    console.error("[WordMate] ERROR: dom.translationBlock is null or undefined!");
+    return;
+  }
+  
   dom.translationBlock.innerHTML = "";
   const items = Array.isArray(definitions) ? definitions : [];
-  const fallbackDisplay = selectChineseTranslations(fallback ? [fallback] : [], fallback)[0] || fallback || "";
+  const baseAlternatives = Array.isArray(fallbackAlternatives)
+    ? fallbackAlternatives.filter(Boolean)
+    : [];
+  const fallbackCandidates = selectChineseTranslations(
+    baseAlternatives.length ? baseAlternatives : fallback ? [fallback] : [],
+    fallback
+  );
+
+  const emptyMessage = "\u6682\u65e0\u91ca\u4e49";
 
   if (!items.length) {
-    if (fallbackDisplay) {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = fallbackDisplay;
-      paragraph.style.fontSize = "16px";
-      paragraph.style.fontWeight = "600";
-      paragraph.style.color = "#0f172a";
-      dom.translationBlock.appendChild(paragraph);
-    } else {
-      const empty = document.createElement("p");
-      empty.textContent = "\u6682\u65e0\u91ca\u4e49";
-      empty.style.color = "#475467";
-      dom.translationBlock.appendChild(empty);
+    const fallbackText = fallbackCandidates[0] || fallback || baseAlternatives[0];
+    const paragraph = document.createElement("p");
+    paragraph.textContent = fallbackText || emptyMessage;
+    paragraph.style.fontSize = "16px";
+    paragraph.style.fontWeight = "600";
+    paragraph.style.color = "#0f172a";
+    dom.translationBlock.appendChild(paragraph);
+    return;
+  }
+
+  // 按词性分组并合并相同词性的释义
+  const groupedByPos = {};
+  console.log("[WordMate][DEBUG] Original definitions:", items);
+  
+  items.forEach((definition, index) => {
+    const partLabelRaw = definition.partOfSpeech || "";
+    const partLabel = formatPartOfSpeech(partLabelRaw);
+    const key = partLabelRaw || "unknown";
+    
+    console.log(`[WordMate][DEBUG] Definition ${index}:`, {
+      partOfSpeech: partLabelRaw,
+      partLabel: partLabel,
+      key: key,
+      translations: definition.translations,
+      translation: definition.translation,
+      meaning: definition.meaning
+    });
+    
+    if (!groupedByPos[key]) {
+      groupedByPos[key] = {
+        partOfSpeech: partLabelRaw,
+        partLabel: partLabel,
+        translations: []
+      };
     }
+    
+    // 收集所有翻译
+    const translations = Array.isArray(definition.translations)
+      ? definition.translations.filter(Boolean)
+      : [];
+    
+    if (translations.length) {
+      groupedByPos[key].translations.push(...translations);
+    } else if (definition.translation) {
+      groupedByPos[key].translations.push(definition.translation);
+    } else if (definition.meaning) {
+      groupedByPos[key].translations.push(definition.meaning);
+    }
+  });
+  
+  console.log("[WordMate][DEBUG] Grouped by POS:", groupedByPos);
+
+  // 如果没有分组结果，使用fallback
+  const groupedEntries = Object.values(groupedByPos);
+  if (groupedEntries.length === 0) {
+    const fallbackText = fallbackCandidates[0] || fallback || baseAlternatives[0];
+    const paragraph = document.createElement("p");
+    paragraph.textContent = fallbackText || emptyMessage;
+    paragraph.style.fontSize = "16px";
+    paragraph.style.fontWeight = "600";
+    paragraph.style.color = "#0f172a";
+    dom.translationBlock.appendChild(paragraph);
     return;
   }
 
@@ -451,90 +608,77 @@ function renderDefinitions(definitions, fallback) {
   list.style.flexDirection = "column";
   list.style.gap = "8px";
 
-  items.slice(0, 6).forEach((definition) => {
+  groupedEntries.slice(0, 6).forEach((group, index) => {
+    console.log(`[WordMate][DEBUG] Rendering group ${index}:`, group);
+    const partLabelRaw = group.partOfSpeech;
+    const partLabel = group.partLabel;
+    const partColor = getPartOfSpeechColor(partLabelRaw);
+    
     const wrapper = document.createElement("div");
-    wrapper.style.padding = "10px 12px";
+    wrapper.style.padding = "12px 16px";
     wrapper.style.borderRadius = "12px";
     wrapper.style.background = "rgba(248, 250, 252, 0.95)";
-    wrapper.style.border = "1px solid rgba(226, 232, 240, 0.7)";
+    wrapper.style.border = `2px solid ${partColor}20`;
+    wrapper.style.marginBottom = "8px";
+    wrapper.style.transition = "all 0.2s ease";
+    wrapper.style.cursor = "default";
+    
+    // 添加悬停效果
+    wrapper.addEventListener("mouseenter", () => {
+      wrapper.style.border = `2px solid ${partColor}40`;
+      wrapper.style.background = "rgba(248, 250, 252, 1)";
+      wrapper.style.transform = "translateY(-1px)";
+      wrapper.style.boxShadow = `0 4px 12px ${partColor}20`;
+    });
+    
+    wrapper.addEventListener("mouseleave", () => {
+      wrapper.style.border = `2px solid ${partColor}20`;
+      wrapper.style.background = "rgba(248, 250, 252, 0.95)";
+      wrapper.style.transform = "translateY(0)";
+      wrapper.style.boxShadow = "none";
+    });
 
     const header = document.createElement("div");
     header.style.display = "flex";
     header.style.alignItems = "center";
-    header.style.justifyContent = "space-between";
-    header.style.marginBottom = "6px";
+    header.style.marginBottom = "8px";
 
     const part = document.createElement("span");
     part.className = "wordmate-badge";
-    part.textContent = formatPartOfSpeech(definition.partOfSpeech);
+    part.textContent = partLabel;
+    part.style.backgroundColor = partColor;
+    part.style.color = "white";
+    part.style.padding = "4px 8px";
+    part.style.borderRadius = "6px";
+    part.style.fontSize = "12px";
+    part.style.fontWeight = "600";
+    part.style.marginRight = "8px";
     header.appendChild(part);
     wrapper.appendChild(header);
 
-    const translationsRaw = Array.isArray(definition.translations)
-      ? definition.translations.slice()
-      : [];
-    if (definition.translation && !translationsRaw.length) {
-      translationsRaw.push(definition.translation);
-    }
-    if (!translationsRaw.length && fallbackDisplay) {
-      translationsRaw.push(fallbackDisplay);
-    }
-    const chineseTranslations = selectChineseTranslations(translationsRaw, fallbackDisplay);
-    const translationDisplay = chineseTranslations.slice(0, 3).join("\uff1b");
-
-    if (translationDisplay) {
-      const translationEl = document.createElement("p");
-      translationEl.style.margin = "0";
-      translationEl.style.fontSize = "16px";
-      translationEl.style.fontWeight = "600";
-      translationEl.style.color = "#0f172a";
-      translationEl.textContent = translationDisplay;
-      wrapper.appendChild(translationEl);
-    } else if (fallbackDisplay) {
-      const fallbackEl = document.createElement("p");
-      fallbackEl.style.margin = "0";
-      fallbackEl.style.fontSize = "16px";
-      fallbackEl.style.fontWeight = "600";
-      fallbackEl.style.color = "#0f172a";
-      fallbackEl.textContent = fallbackDisplay;
-      wrapper.appendChild(fallbackEl);
+    // 去重并限制翻译数量
+    const uniqueTranslations = Array.from(new Set(group.translations)).slice(0, 6);
+    let displayList = uniqueTranslations;
+    
+    // 如果仍然没有翻译，使用fallback
+    if (!displayList.length) {
+      displayList = fallbackCandidates.slice(0, 6);
     }
 
-    const meaningText = definition.meaning || "";
-    if (meaningText) {
-      const meaning = document.createElement("p");
-      meaning.style.margin = (translationDisplay || fallbackDisplay) ? "6px 0 0" : "0";
-      meaning.style.fontSize = "14px";
-      meaning.style.lineHeight = "1.5";
-      meaning.style.color = "#334155";
-      meaning.textContent = meaningText;
-      wrapper.appendChild(meaning);
-    }
-
-    if (definition.example) {
-      const example = document.createElement("p");
-      example.style.margin = "6px 0 0";
-      example.style.fontSize = "13px";
-      example.style.color = "#475467";
-      example.textContent = definition.example;
-      wrapper.appendChild(example);
-    }
-
-    if (definition.synonyms && definition.synonyms.length) {
-      const synonyms = document.createElement("p");
-      synonyms.style.margin = "6px 0 0";
-      synonyms.style.fontSize = "13px";
-      synonyms.style.color = "#0f172a";
-      synonyms.textContent = "\u540c\u4e49\u8bcd\uff1a" + definition.synonyms.slice(0, 5).join("\u3001");
-      wrapper.appendChild(synonyms);
-    }
-
+    const paragraph = document.createElement("p");
+    paragraph.style.margin = "0";
+    paragraph.style.fontSize = "16px";
+    paragraph.style.fontWeight = "600";
+    paragraph.style.color = "#0f172a";
+    paragraph.style.lineHeight = "1.5";
+    paragraph.textContent = displayList.join("\uff0c") || emptyMessage;
+    wrapper.appendChild(paragraph);
+    
     list.appendChild(wrapper);
   });
 
   dom.translationBlock.appendChild(list);
 }
-
 function renderContext(context) {
   dom.contextBlock.innerHTML = "";
   if (!context || !context.translation) {
@@ -582,6 +726,15 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
     return;
   }
 
+  // 检查扩展上下文是否有效
+  if (!isExtensionContextValid()) {
+    console.error("[WordMate] Extension context invalidated during save");
+    if (!silent) {
+      showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
+    }
+    return;
+  }
+
   chrome.runtime.sendMessage(
     {
       type: "WORDMATE_SAVE_LOCAL",
@@ -591,7 +744,11 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
       if (chrome.runtime.lastError) {
         console.error("[WordMate] Save local error", chrome.runtime.lastError);
         if (!silent) {
-          showToast("\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5");
+          if (chrome.runtime.lastError.message.includes("Extension context invalidated")) {
+            showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
+          } else {
+            showToast("\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5");
+          }
         }
         return;
       }
@@ -773,6 +930,11 @@ function applySettings(settings) {
 }
 
 async function bootstrapSettings() {
+  if (!isExtensionContextValid()) {
+    console.warn("[WordMate] Extension context invalidated, skipping settings bootstrap");
+    return;
+  }
+  
   try {
     const settings = await chrome.runtime.sendMessage({
       type: "WORDMATE_GET_SETTINGS"
@@ -810,6 +972,10 @@ function initMessageListener() {
 }
 
 function initContextMenuIntegration() {
+  if (!isExtensionContextValid()) {
+    console.warn("[WordMate] Extension context invalidated, skipping context menu integration");
+    return;
+  }
   chrome.runtime.sendMessage({ type: "WORDMATE_CONTEXT_READY" });
 }
 
@@ -828,3 +994,16 @@ function initialize() {
 }
 
 initialize();
+
+
+
+
+
+
+
+
+
+
+
+
+

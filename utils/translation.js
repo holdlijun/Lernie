@@ -18,7 +18,10 @@ export async function lookupWord({ text, context = "", sourceUrl = "", pageTitle
     translateContext(word, context, translationProvider).catch(() => null)
   ]);
 
-  const definitions = buildDefinitions(dictionary, translation);
+  const translationAlternatives = Array.isArray(translation?.translations)    ? translation.translations.filter(Boolean)    : [];  
+  console.info('[WordMate] translationAlternatives', translationAlternatives);
+
+  const definitions = buildDefinitions(dictionary, translation, translationAlternatives);
 
   const primaryMeaning =
     sanitizeTranslationValue(translation?.wordTranslation || "") ||
@@ -39,7 +42,7 @@ export async function lookupWord({ text, context = "", sourceUrl = "", pageTitle
   return {
     word,
     translation: primaryMeaning,
-    translations: translation?.translations || [],
+    translations: translationAlternatives,
     definitions,
     phonetic,
     phonetics: phonetics.items,
@@ -131,7 +134,7 @@ async function translateWithGoogle(text) {
     .filter(Array.isArray)
     .map((segment) => sanitizeTranslationValue(segment[0]))
     .filter(Boolean);
-
+  console.log(translations);
   const dictionary = parseGoogleDictionary(json?.[1]);
 
   return {
@@ -168,64 +171,92 @@ function parseGoogleDictionary(rawDictionary) {
     .filter((entry) => entry.partOfSpeech && entry.translations.length);
 }
 
-function buildDefinitions(dictionary, translation) {
+function buildDefinitions(dictionary, translation, translationAlternatives = []) {
   const translationText = sanitizeTranslationValue(translation?.wordTranslation || "");
-  const translationAlternatives = Array.isArray(translation?.translations)
-    ? translation.translations.map(sanitizeTranslationValue).filter(Boolean)
-    : [];
   const translationMap = buildTranslationMap(translation?.dictionary, translationAlternatives);
+  console.info("[WordMate] buildDefinitions", {
+    hasDictionary: Boolean(dictionary),
+    translationText,
+    translationAlternatives,
+    translationMapKeys: Array.from(translationMap.keys())
+  });
+  const grouped = new Map();
 
   if (dictionary?.meanings?.length) {
-    const collected = [];
     dictionary.meanings.forEach((meaning) => {
+      const partLabel = meaning.partOfSpeech || "";
       const partKey = normalizePartOfSpeech(meaning.partOfSpeech);
-      const partTranslations =
-        translationMap.get(partKey) ||
-        translationMap.get("default") ||
-        translationAlternatives;
-
-      (meaning.definitions || []).forEach((definition) => {
-        const meaningText = coerceString(definition.definition);
-        if (!meaningText) {
-          return;
-        }
-        const translationsList = selectChineseCandidates(
-          partTranslations.length ? partTranslations : translationAlternatives,
-          translationText
-        );
-        const translationValue = translationsList[0] || (containsChinese(translationText) ? translationText : "");
-        collected.push({
-          partOfSpeech: meaning.partOfSpeech || "",
-          meaning: meaningText,
-          translation: translationValue,
-          translations: translationsList,
-          example: coerceString(definition.example),
-          synonyms: sanitizeSynonyms(definition.synonyms)
-        });
-      });
+      const candidates = [
+        ...(translationMap.get(partKey) || []),
+        ...(translationMap.get("default") || []),
+        ...translationAlternatives,
+        translationText
+      ];
+      const translationsList = selectChineseCandidates(candidates, translationText);
+      if (!translationsList.length) {
+        return;
+      }
+      if (!grouped.has(partLabel)) {
+        grouped.set(partLabel, new Set());
+      }
+      const bucket = grouped.get(partLabel);
+      translationsList.forEach((item) => bucket.add(item));
     });
-
-    if (collected.length) {
-      return collected;
-    }
   }
 
-  const chineseFallback = selectChineseCandidates(translationAlternatives, translationText);
-  if (chineseFallback.length) {
-    const fallback = chineseFallback[0];
-    return [
-      {
-        partOfSpeech: "",
-        meaning: fallback,
-        translation: fallback,
-        translations: chineseFallback,
+  translationMap.forEach((translationsList, partKey) => {
+    if (partKey === "default") {
+      return;
+    }
+    const partLabel = partKey || "";
+    const normalizedList = selectChineseCandidates(translationsList, translationText);
+    if (!normalizedList.length) {
+      return;
+    }
+    if (!grouped.has(partLabel)) {
+      grouped.set(partLabel, new Set());
+    }
+    const bucket = grouped.get(partLabel);
+    normalizedList.forEach((item) => bucket.add(item));
+  });
+
+  if (!grouped.size) {
+    const fallbackList = selectChineseCandidates(
+      translationAlternatives.length ? translationAlternatives : translationText ? [translationText] : [],
+      translationText
+    );
+    if (fallbackList.length) {
+      return [
+        {
+          partOfSpeech: "",
+          meaning: "",
+          translation: fallbackList[0],
+          translations: fallbackList,
+          example: "",
+          synonyms: []
+        }
+      ];
+    }
+    return [];
+  }
+
+  const definitions = Array.from(grouped.entries())
+    .map(([part, values]) => {
+      const translationsList = Array.from(values);
+      console.info("[WordMate] definition entry", { part, translationsList });
+      return {
+        partOfSpeech: part,
+        meaning: "",
+        translation: translationsList[0] || "",
+        translations: translationsList,
         example: "",
         synonyms: []
-      }
-    ];
-  }
+      };
+    })
+    .filter((item) => item.translations.length);
 
-  return [];
+  console.info("[WordMate] definitions result", definitions);
+  return definitions;
 }
 
 function buildExamples(dictionary, translation, context) {
@@ -355,12 +386,12 @@ function sanitizeTranslationValue(value) {
   if (!stripped) {
     return "";
   }
-  const segments = stripped.split(/[,\uff0c;]/).map((part) => part.trim()).filter(Boolean);
-  const candidate = segments.length ? segments[0] : stripped;
-  if (/^[-_=#0-9.]+$/.test(candidate)) {
+  const normalized = stripped.replace(/\s+/g, " ");
+  const checkBase = normalized.replace(/[\u3001\u3002\uff0c\uff1b\uff1a\uff0f,;\\ufffd\\ufffd\\ufffd\\ufffd\s]/g, "");
+  if (/^[-_=#0-9.]+$/.test(checkBase)) {
     return "";
   }
-  return candidate;
+  return normalized;
 }
 
 function containsChinese(text = "") {
@@ -368,15 +399,44 @@ function containsChinese(text = "") {
 }
 
 function selectChineseCandidates(values = [], fallback = "") {
-  const unique = [...new Set(values.map((item) => (item || "").trim()).filter(Boolean))];
+  const collected = [];
+  values.forEach((value) => {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (!text) {
+      return;
+    }
+    const segments = splitChineseSegments(text);
+    if (segments.length) {
+      segments.forEach((segment) => collected.push(segment));
+    } else {
+      collected.push(text);
+    }
+  });
+
+  const unique = dedupeStrings(collected);
   const chinese = unique.filter((item) => containsChinese(item));
   if (chinese.length) {
     return chinese;
   }
-  if (fallback && containsChinese(fallback)) {
-    return [fallback];
+
+  if (fallback) {
+    const fallbackSegments = splitChineseSegments(fallback);
+    if (fallbackSegments.length) {
+      return dedupeStrings(fallbackSegments);
+    }
+    if (containsChinese(fallback)) {
+      return [fallback];
+    }
   }
+
   return unique;
+}
+
+function splitChineseSegments(text) {
+  return String(text)
+    .split(/[\u3001\u3002\uff0c\uff1b\uff1a\uff0f,;\\ufffd\\ufffd\\ufffd\\ufffd\/]/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
 }
 
 function sanitizeSynonyms(values) {
@@ -442,3 +502,14 @@ function coerceString(value) {
   }
   return String(value);
 }
+
+
+
+
+
+
+
+
+
+
+

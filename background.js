@@ -22,13 +22,17 @@ const COMMANDS = {
 
 const NOTION_QUEUE_ALARM = "WORDMATE_NOTION_QUEUE";
 
+let contextMenuRegistered = false;
+
 chrome.runtime.onInstalled.addListener(async () => {
+  contextMenuRegistered = false; // 重置标志
   await initializeDefaults();
   await registerContextMenu();
   chrome.alarms.create(NOTION_QUEUE_ALARM, { periodInMinutes: 5 });
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  contextMenuRegistered = false; // 重置标志
   await registerContextMenu();
   chrome.alarms.create(NOTION_QUEUE_ALARM, { periodInMinutes: 5 });
 });
@@ -122,6 +126,10 @@ async function initializeDefaults() {
 }
 
 async function registerContextMenu() {
+  if (contextMenuRegistered) {
+    return;
+  }
+  
   return new Promise((resolve) => {
     chrome.contextMenus.removeAll(() => {
       chrome.contextMenus.create(
@@ -130,7 +138,14 @@ async function registerContextMenu() {
           title: "\u7528 WordMate \u89e3\u8bfb",
           contexts: ["selection"]
         },
-        resolve
+        () => {
+          if (chrome.runtime.lastError) {
+            console.warn("[WordMate] Context menu creation failed:", chrome.runtime.lastError.message);
+          } else {
+            contextMenuRegistered = true;
+          }
+          resolve();
+        }
       );
     });
   });
