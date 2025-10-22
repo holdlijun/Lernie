@@ -1,0 +1,85 @@
+{
+  "manifest_version": 3,
+  "name": "WordMate - Smart English Learning Assistant",
+  "short_name": "WordMate",
+  "version": "0.1.0",
+  "description": "Highlight a word to see translations, AI examples, pronunciations, and save directly to Notion.",
+  "action": {
+    "default_title": "WordMate",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "notifications",
+    "alarms",
+    "contextMenus",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*/",
+    "http://*/",
+    "https://api.notion.com/*"
+  ],
+  "commands": {
+    "wordmate-open-float": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Open WordMate overlay for the current selection."
+    },
+    "wordmate-play-audio": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "Replay pronunciation for the last looked up word."
+    },
+    "wordmate-save-notion": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S"
+      },
+      "description": "Save the current lookup to Notion."
+    },
+    "wordmate-open-dashboard": {
+      "suggested_key": {
+        "default": "Alt+D"
+      },
+      "description": "Open the WordMate dashboard popup."
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

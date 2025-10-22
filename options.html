@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WordMate &#x8bbe;&#x7f6e;</title>
+    <link rel="stylesheet" href="styles/options.css" />
+  </head>
+  <body>
+    <main class="wm-options">
+      <header class="wm-options-header">
+        <div>
+          <h1>WordMate &#x8bbe;&#x7f6e;&#x4e2d;&#x5fc3;</h1>
+          <p>&#x7ba1;&#x7406; Notion &#x540c;&#x6b65;&#x3001;&#x7ffb;&#x8bd1;&#x5f15;&#x64ce;&#x3001;&#x53d1;&#x97f3;&#x504f;&#x597d;&#x4e0e;&#x81ea;&#x52a8;&#x5316;&#x914d;&#x7f6e;&#x3002;</p>
+        </div>
+        <button id="back-to-popup" class="wm-link-button">&#x8fd4;&#x56de;&#x6269;&#x5c55;</button>
+      </header>
+
+      <section class="wm-card">
+        <header>
+          <h2>Notion &#x914d;&#x7f6e; <span class="wm-badge">&#x5fc5;&#x586b;</span></h2>
+          <p>&#x586b;&#x5199; Notion API Token &#x4e0e; Database ID&#xff0c;&#x652f;&#x6301;&#x4e00;&#x952e;&#x6d4b;&#x8bd5;&#x8fde;&#x63a5;&#x3002;</p>
+        </header>
+        <div class="wm-grid">
+          <label class="wm-field">
+            <span>内部集成密钥(Secret Key)</span>
+            <input type="password" id="notionToken" data-setting="notionToken" placeholder="secret_xxx" />
+          </label>
+          <label class="wm-field">
+            <span>Database ID</span>
+            <input type="text" id="notionDatabaseId" data-setting="notionDatabaseId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          </label>
+        </div>
+        <div class="wm-actions">
+          <button id="test-notion" class="wm-secondary-button" type="button">&#x6d4b;&#x8bd5;&#x8fde;&#x63a5;</button>
+          <span id="notion-status" class="wm-status"></span>
+        </div>
+        <label class="wm-toggle">
+          <input type="checkbox" id="autoSaveNotion" data-setting="autoSaveNotion" />
+          <span>&#x5212;&#x8bcd;&#x540e;&#x81ea;&#x52a8;&#x4fdd;&#x5b58;&#x5230; Notion</span>
+        </label>
+      </section>
+
+      <section class="wm-card">
+        <header>
+          <h2>&#x7ffb;&#x8bd1;&#x4e0e; AI</h2>
+          <p>&#x9009;&#x62e9;&#x9ed8;&#x8ba4;&#x7ffb;&#x8bd1;&#x6765;&#x6e90;&#xff0c;&#x53ef;&#x914d;&#x7f6e; GPT &#x63a5;&#x53e3;&#x7528;&#x4e8e;&#x8bed;&#x5883;&#x4e0e;&#x4f8b;&#x53e5;&#x3002;</p>
+        </header>
+        <div class="wm-grid">
+          <label class="wm-field">
+            <span>&#x9ed8;&#x8ba4;&#x7ffb;&#x8bd1;&#x65b9;&#x5f0f;</span>
+            <select id="translationProvider" data-setting="translationProvider">
+              <option value="google">Google &#x7ffb;&#x8bd1;</option>
+              <option value="gpt">OpenAI GPT</option>
+            </select>
+          </label>
+          <label class="wm-field">
+            <span>OpenAI API Key</span>
+            <input type="password" id="openAIApiKey" data-setting="openAIApiKey" placeholder="sk-..." />
+          </label>
+          <label class="wm-field">
+            <span>OpenAI &#x6a21;&#x578b;</span>
+            <input type="text" id="openAIModel" data-setting="openAIModel" placeholder="gpt-4o-mini" />
+          </label>
+        </div>
+      </section>
+
+      <section class="wm-card">
+        <header>
+          <h2>&#x53d1;&#x97f3;&#x504f;&#x597d;</h2>
+          <p>&#x8bbe;&#x5b9a;&#x9ed8;&#x8ba4;&#x97f3;&#x6e90;&#x4e0e;&#x81ea;&#x52a8;&#x64ad;&#x653e;&#x7b56;&#x7565;&#x3002;</p>
+        </header>
+        <div class="wm-grid">
+          <label class="wm-field">
+            <span>&#x97f3;&#x6e90;</span>
+            <select id="audioProvider" data-setting="audioProvider">
+              <option value="google">Google TTS</option>
+              <option value="system">&#x7cfb;&#x7edf;&#x8bed;&#x97f3; SpeechSynthesis</option>
+              <option value="youglish">Youglish</option>
+            </select>
+          </label>
+          <label class="wm-toggle">
+            <input type="checkbox" id="autoPlayAudio" data-setting="autoPlayAudio" />
+            <span>&#x5212;&#x8bcd;&#x540e;&#x81ea;&#x52a8;&#x64ad;&#x653e;&#x53d1;&#x97f3;</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="wm-card">
+        <header>
+          <h2>&#x754c;&#x9762;&#x4e0e;&#x5feb;&#x6377;&#x952e;</h2>
+          <p>&#x81ea;&#x5b9a;&#x4e49;&#x6d6e;&#x5c42;&#x9ed8;&#x8ba4;&#x6807;&#x7b7e;&#x9875;&#x3001;&#x5feb;&#x6377;&#x952e;&#x548c;&#x901a;&#x77e5;&#x3002;</p>
+        </header>
+        <div class="wm-grid">
+          <label class="wm-field">
+            <span>&#x6d6e;&#x5c42;&#x9ed8;&#x8ba4;&#x9875;&#x7b7e;</span>
+            <select id="defaultTab" data-setting="defaultTab">
+              <option value="definition">&#x91ca;&#x4e49;</option>
+              <option value="context">&#x8bed;&#x5883;</option>
+              <option value="writing">&#x5199;&#x4f5c;</option>
+              <option value="vocabulary">&#x8bcd;&#x5e93;</option>
+            </select>
+          </label>
+          <label class="wm-toggle">
+            <input type="checkbox" id="autoOpenPanel" data-setting="autoOpenPanel" />
+            <span>&#x5212;&#x8bcd;&#x540e;&#x81ea;&#x52a8;&#x5c55;&#x5f00;&#x6d6e;&#x5c42;</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="wm-card">
+        <header>
+          <h2>&#x6570;&#x636e;&#x4e0e;&#x9690;&#x79c1;</h2>
+          <p>&#x5bfc;&#x51fa;/&#x6e05;&#x9664;&#x5386;&#x53f2;&#xff0c;&#x65ad;&#x5f00; Notion &#x8fde;&#x63a5;&#x3002;</p>
+        </header>
+        <div class="wm-actions">
+          <button id="export-history-options" class="wm-secondary-button" type="button">
+            &#x5bfc;&#x51fa;&#x8bcd;&#x5e93; CSV
+          </button>
+          <button id="clear-history" class="wm-danger-button" type="button">
+            &#x6e05;&#x7a7a;&#x5386;&#x53f2;&#x6570;&#x636e;
+          </button>
+          <button id="disconnect-notion" class="wm-danger-button" type="button">
+            &#x65ad;&#x5f00; Notion &#x6388;&#x6743;
+          </button>
+        </div>
+      </section>
+
+      <section class="wm-card" id="dashboard">
+        <header>
+          <h2>&#x5b66;&#x4e60;&#x6982;&#x89c8;</h2>
+          <p>&#x67e5;&#x770b;&#x8fd1;&#x671f;&#x67e5;&#x8bcd;&#x8d8b;&#x52bf;&#x4e0e;&#x5f85;&#x590d;&#x4e60;&#x4efb;&#x52a1;&#xff08;&#x5f00;&#x53d1;&#x4e2d;&#xff09;&#x3002;</p>
+        </header>
+        <div class="wm-dashboard-placeholder">
+          <p>Dashboard &#x529f;&#x80fd;&#x5f00;&#x53d1;&#x4e2d;&#xff0c;&#x656c;&#x8bf7;&#x671f;&#x5f85;&#xff01;</p>
+        </div>
+      </section>
+
+      <footer class="wm-options-footer">
+        <span id="options-status"></span>
+        <button id="reset-settings" class="wm-secondary-button" type="button">&#x6062;&#x590d;&#x9ed8;&#x8ba4;</button>
+      </footer>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
