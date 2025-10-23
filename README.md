@@ -19,8 +19,8 @@ Lernie 是一款专为沉浸式英文阅读设计的 Chrome 浏览器扩展。�
 ### 方式一：通过 Git 克隆安装（适合开发者）
 1. 克隆仓库并进入目录：
    ```bash
-   git clone git@github.com:holdlijun/WrodMate.git
-   cd WrodMate
+   git clone git@github.com:holdlijun/Lernie.git
+   cd Lernie
    ```
 2. 打开 Chrome，访问 `chrome://extensions/`。
 3. 开启右上角“开发者模式”。
