@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "WordMate - Smart English Learning Assistant",
-  "short_name": "WordMate",
+  "name": "Lernie - Smart English Learning Assistant",
+  "short_name": "Lernie",
   "version": "0.1.0",
   "description": "Highlight a word to see translations, AI examples, pronunciations, and save directly to Notion.",
   "action": {
-    "default_title": "WordMate",
+    "default_title": "Lernie",
     "default_popup": "popup.html"
   },
   "options_page": "options.html",
@@ -51,7 +51,7 @@
       "suggested_key": {
         "default": "Alt+T"
       },
-      "description": "Open WordMate overlay for the current selection."
+      "description": "Open Lernie overlay for the current selection."
     },
     "wordmate-play-audio": {
       "suggested_key": {
@@ -69,7 +69,7 @@
       "suggested_key": {
         "default": "Alt+D"
       },
-      "description": "Open the WordMate dashboard popup."
+      "description": "Open the Lernie dashboard popup."
     }
   },
   "web_accessible_resources": [

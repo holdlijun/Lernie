@@ -1,3 +1,19 @@
+.wm-root {
+  width: 360px;
+  min-width: 360px;
+}
+
+html,
+body {
+  width: 360px;
+  min-width: 360px;
+  margin: 0;
+  padding: 0;
+  background: #f3f4f6;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  color: #1f2937;
+}
+
 .wm-popup-header {
   display: flex;
   align-items: center;
@@ -127,8 +143,12 @@
 
 .wm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
+}
+
+.wm-grid > button {
+  width: 100%;
 }
 
 .wm-empty-state {

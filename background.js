@@ -20,7 +20,7 @@ const COMMANDS = {
   OPEN_DASHBOARD: "wordmate-open-dashboard"
 };
 
-const NOTION_QUEUE_ALARM = "WORDMATE_NOTION_QUEUE";
+const NOTION_QUEUE_ALARM = "LERNIE_NOTION_QUEUE";
 
 let contextMenuRegistered = false;
 
@@ -135,12 +135,12 @@ async function registerContextMenu() {
       chrome.contextMenus.create(
         {
           id: "wordmate-context-lookup",
-          title: "\u7528 WordMate \u89e3\u8bfb",
+          title: "\u4f7f\u7528 Lernie \u67e5\u8bcd",
           contexts: ["selection"]
         },
         () => {
           if (chrome.runtime.lastError) {
-            console.warn("[WordMate] Context menu creation failed:", chrome.runtime.lastError.message);
+            console.warn("[Lernie] Context menu creation failed:", chrome.runtime.lastError.message);
           } else {
             contextMenuRegistered = true;
           }
@@ -156,7 +156,7 @@ async function handleLookupRequest(payload, sendResponse) {
     const lookup = await lookupWord(payload);
     sendResponse(lookup);
   } catch (error) {
-    console.error("[WordMate] Lookup failed", error);
+    console.error("[Lernie] Lookup failed", error);
     sendResponse(null);
   }
 }
@@ -166,7 +166,7 @@ async function handleSaveLocal(payload, sendResponse) {
     const entry = await addHistoryEntry(payload);
     sendResponse({ success: true, entry, message: "\u5df2\u52a0\u5165\u751f\u8bcd\u5e93" });
   } catch (error) {
-    console.error("[WordMate] Save local failed", error);
+    console.error("[Lernie] Save local failed", error);
     sendResponse({ success: false, message: error.message });
   }
 }
@@ -183,7 +183,7 @@ async function handleSaveNotion(payload, sendResponse) {
     }
     sendResponse({ success: true, notion: result });
   } catch (error) {
-    console.error("[WordMate] Notion sync failed", error);
+    console.error("[Lernie] Notion sync failed", error);
     await queueNotionEntry(payload);
     sendResponse({ success: false, message: error.message });
   }
@@ -195,7 +195,7 @@ async function handleTestNotion(payload, sendResponse) {
     await setSync({ notionConfigured: true });
     sendResponse({ success: true, workspace: result.parent });
   } catch (error) {
-    console.error("[WordMate] Notion test failed", error);
+    console.error("[Lernie] Notion test failed", error);
     sendResponse({ success: false, message: error.message });
   }
 }
@@ -210,7 +210,7 @@ async function flushPendingNotionQueue() {
     try {
       await saveWordToNotion(entry);
     } catch (error) {
-      console.warn("[WordMate] Retry Notion failed, re-queue", error);
+      console.warn("[Lernie] Retry Notion failed, re-queue", error);
       await queueNotionEntry(entry);
       break;
     }
@@ -248,4 +248,3 @@ async function broadcastSettingsUpdate(payload) {
     })
   );
 }
-

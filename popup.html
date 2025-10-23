@@ -2,41 +2,43 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>WordMate</title>
+    <title>Lernie</title>
     <link rel="stylesheet" href="styles/popup.css" />
   </head>
   <body>
-    <header class="wm-popup-header">
-      <div>
-        <h1>WordMate</h1>
-        <p class="wm-subtitle">划词查义 · AI 例句 · Notion 同步</p>
-      </div>
-      <button id="open-options" class="wm-secondary-button">设置</button>
-    </header>
+    <div class="wm-root">
+      <header class="wm-popup-header">
+        <div>
+          <h1>Lernie</h1>
+          <p class="wm-subtitle">划词查义 · Notion 同步 · 发音学习</p>
+        </div>
+        <button id="open-options" class="wm-secondary-button">设置</button>
+      </header>
 
-    <section class="wm-section">
-      <div class="wm-section-head">
-        <h2>最近记录</h2>
-        <button id="refresh-history" class="wm-icon-button" title="刷新">⟳</button>
-      </div>
-      <ul id="history-list" class="wm-history-list"></ul>
-      <div id="history-empty" class="wm-empty-state">暂无记录，划词开始学习吧。</div>
-    </section>
+      <section class="wm-section">
+        <div class="wm-section-head">
+          <h2>最近记录</h2>
+          <button id="refresh-history" class="wm-icon-button" title="刷新">⟳</button>
+        </div>
+        <ul id="history-list" class="wm-history-list"></ul>
+        <div id="history-empty" class="wm-empty-state">暂无记录，划词开始学习吧！</div>
+      </section>
 
-    <section class="wm-section">
-      <div class="wm-section-head">
-        <h2>快速操作</h2>
-      </div>
-      <div class="wm-grid">
-        <button id="open-dashboard" class="wm-primary-button">打开 Dashboard</button>
-        <button id="export-history" class="wm-secondary-button">导出 CSV</button>
-        <button id="open-notion" class="wm-secondary-button">打开 Notion</button>
-      </div>
-    </section>
+      <section class="wm-section">
+        <div class="wm-section-head">
+          <h2>快速操作</h2>
+        </div>
+        <div class="wm-grid">
+          <button id="open-dashboard" class="wm-primary-button">打开 Dashboard</button>
+          <button id="export-history" class="wm-secondary-button">导出 CSV</button>
+          <button id="open-notion" class="wm-secondary-button">打开 Notion</button>
+        </div>
+      </section>
 
-    <footer class="wm-footer">
-      <span id="status-message"></span>
-    </footer>
+      <footer class="wm-footer">
+        <span id="status-message"></span>
+      </footer>
+    </div>
 
     <script type="module" src="popup.js"></script>
   </body>

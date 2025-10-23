@@ -1,4 +1,4 @@
-import { getSync } from "./storage.js";
+﻿import { getSync } from "./storage.js";
 
 const GOOGLE_TRANSLATE_ENDPOINT =
   "https://translate.googleapis.com/translate_a/single";
@@ -19,7 +19,7 @@ export async function lookupWord({ text, context = "", sourceUrl = "", pageTitle
   ]);
 
   const translationAlternatives = Array.isArray(translation?.translations)    ? translation.translations.filter(Boolean)    : [];  
-  console.info('[WordMate] translationAlternatives', translationAlternatives);
+  console.info('[Lernie] translationAlternatives', translationAlternatives);
 
   const definitions = buildDefinitions(dictionary, translation, translationAlternatives);
 
@@ -174,7 +174,7 @@ function parseGoogleDictionary(rawDictionary) {
 function buildDefinitions(dictionary, translation, translationAlternatives = []) {
   const translationText = sanitizeTranslationValue(translation?.wordTranslation || "");
   const translationMap = buildTranslationMap(translation?.dictionary, translationAlternatives);
-  console.info("[WordMate] buildDefinitions", {
+  console.info("[Lernie] buildDefinitions", {
     hasDictionary: Boolean(dictionary),
     translationText,
     translationAlternatives,
@@ -243,7 +243,7 @@ function buildDefinitions(dictionary, translation, translationAlternatives = [])
   const definitions = Array.from(grouped.entries())
     .map(([part, values]) => {
       const translationsList = Array.from(values);
-      console.info("[WordMate] definition entry", { part, translationsList });
+      console.info("[Lernie] definition entry", { part, translationsList });
       return {
         partOfSpeech: part,
         meaning: "",
@@ -255,7 +255,7 @@ function buildDefinitions(dictionary, translation, translationAlternatives = [])
     })
     .filter((item) => item.translations.length);
 
-  console.info("[WordMate] definitions result", definitions);
+  console.info("[Lernie] definitions result", definitions);
   return definitions;
 }
 

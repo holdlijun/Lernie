@@ -1,4 +1,4 @@
-﻿/* global chrome */
+/* global chrome */
 
 const FLOAT_TRIGGER_OFFSET = 12;
 const PANEL_DEFAULT_POSITION = { x: 24, y: 24 };
@@ -46,20 +46,20 @@ const PART_OF_SPEECH_LABELS = {
 };
 
 const PART_OF_SPEECH_COLORS = {
-  noun: "#3b82f6",      // 钃濊壊 - 鍚嶈瘝
-  verb: "#ef4444",      // 绾㈣壊 - 鍔ㄨ瘝
-  adjective: "#10b981",  // 缁胯壊 - 褰㈠璇?
-  adverb: "#f59e0b",    // 姗欒壊 - 鍓瘝
-  pronoun: "#8b5cf6",   // 绱壊 - 浠ｈ瘝
-  preposition: "#06b6d4", // 闈掕壊 - 浠嬭瘝
-  conjunction: "#84cc16", // 闈掔豢鑹?- 杩炶瘝
-  interjection: "#f97316", // 姗欑孩鑹?- 鎰熷徆璇?
-  determiner: "#6366f1", // 闈涜摑鑹?- 闄愬畾璇?
-  article: "#14b8a6",   // 钃濈豢鑹?- 鍐犺瘝
-  prefix: "#64748b",    // 鐏拌壊 - 鍓嶇紑
-  suffix: "#64748b",    // 鐏拌壊 - 鍚庣紑
-  phrasalverb: "#dc2626", // 娣辩孩鑹?- 鍔ㄨ瘝鐭
-  auxiliaryverb: "#b91c1c" // 娣辩孩鑹?- 鍔╁姩璇?
+  noun: "#3b82f6",      // 閽冩繆澹?- 閸氬秷鐦?
+  verb: "#ef4444",      // 缁俱垼澹?- 閸斻劏鐦?
+  adjective: "#10b981",  // 缂佽儻澹?- 瑜般垹顔愮拠?
+  adverb: "#f59e0b",    // 濮楁瑨澹?- 閸擃垵鐦?
+  pronoun: "#8b5cf6",   // 缁鳖偉澹?- 娴狅綀鐦?
+  preposition: "#06b6d4", // 闂堟帟澹?- 娴犲鐦?
+  conjunction: "#84cc16", // 闂堟帞璞㈤懝?- 鏉╃偠鐦?
+  interjection: "#f97316", // 濮楁瑧瀛╅懝?- 閹扮喎寰嗙拠?
+  determiner: "#6366f1", // 闂堟稖鎽戦懝?- 闂勬劕鐣剧拠?
+  article: "#14b8a6",   // 閽冩繄璞㈤懝?- 閸愮姾鐦?
+  prefix: "#64748b",    // 閻忔媽澹?- 閸撳秶绱?
+  suffix: "#64748b",    // 閻忔媽澹?- 閸氬海绱?
+  phrasalverb: "#dc2626", // 濞ｈ京瀛╅懝?- 閸斻劏鐦濋惌顓☆嚔
+  auxiliaryverb: "#b91c1c" // 濞ｈ京瀛╅懝?- 閸斺晛濮╃拠?
 };
 
 function formatPartOfSpeech(value) {
@@ -72,7 +72,7 @@ function formatPartOfSpeech(value) {
 
 function getPartOfSpeechColor(value) {
   if (!value) {
-    return "#64748b"; // 榛樿鐏拌壊
+    return "#64748b"; // 姒涙顓婚悘鎷屽
   }
   const normalized = value.toLowerCase().replace(/[\s-]+/g, "");
   return PART_OF_SPEECH_COLORS[normalized] || "#64748b";
@@ -91,25 +91,25 @@ function isExtensionContextValid() {
 }
 
 function handleExtensionContextInvalidated() {
-  console.warn("[WordMate] Extension context invalidated, attempting to reinitialize...");
+  console.warn("[Lernie] Extension context invalidated, attempting to reinitialize...");
   
-  // 闅愯棌闈㈡澘鍜岃Е鍙戝櫒
+// Check extension context validity
   hidePanel();
   hideTrigger();
   
-  // 娓呯悊鐘舵€?
+  // 濞撳懐鎮婇悩鑸碘偓?
   state.selectionText = "";
   state.selectionContext = "";
   state.selectionRect = null;
   state.lastLookup = null;
   
-  // 鏄剧ず鎻愮ず淇℃伅
+  // 閺勫墽銇氶幓鎰仛娣団剝浼?
   showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
   
-  // 灏濊瘯閲嶆柊鍒濆鍖栵紙寤惰繜鎵ц锛?
+  // 鐏忔繆鐦柌宥嗘煀閸掓繂顫愰崠鏍电礄瀵ゆ儼绻滈幍褑顢戦敍?
   setTimeout(() => {
     if (isExtensionContextValid()) {
-      console.log("[WordMate] Extension context restored, reinitializing...");
+      console.log("[Lernie] Extension context restored, reinitializing...");
       initialize();
     }
   }, 1000);
@@ -148,7 +148,7 @@ function selectChineseTranslations(values = [], fallback = "") {
 
 function splitChineseText(text) {
   return String(text)
-    .split(/[\u3001\u3002\uff0c\uff1b\uff1a\uff0f,;\\ufffd\\ufffd\\ufffd\\ufffd\/]/)
+    .split(/[\u3001\u3002\uff0c\uff1b\uff1a\uff0f,;\ufffd\ufffd\ufffd\ufffd\/]/)
     .map((segment) => segment.trim())
     .filter(Boolean);
 }
@@ -156,8 +156,12 @@ function splitChineseText(text) {
 function createTrigger() {
   const trigger = document.createElement("div");
   trigger.className = "wordmate-floating-trigger";
-  trigger.textContent = "W";
-  trigger.title = "WordMate \u67e5\u8bcd";
+  trigger.title = "Lernie \u67e5\u8bcd";
+  const triggerIcon = document.createElement("img");
+  triggerIcon.src = chrome.runtime.getURL("assets/icon48.png");
+  triggerIcon.alt = "Lernie";
+  triggerIcon.className = "wordmate-trigger-icon";
+  trigger.appendChild(triggerIcon);
   trigger.addEventListener("mousedown", (event) => event.preventDefault());
   trigger.addEventListener("click", handleTriggerClick);
   document.documentElement.appendChild(trigger);
@@ -282,7 +286,7 @@ function buildSelectionContext(selection) {
     const sentence = parentElement.innerText || "";
     return sentence.trim().slice(0, 400);
   } catch (error) {
-    console.warn("[WordMate] Failed to build context", error);
+    console.warn("[Lernie] Failed to build context", error);
     return "";
   }
 }
@@ -378,7 +382,7 @@ function showPanel() {
   positionPanelNearSelection();
   dom.panel.style.display = "flex";
   dom.panel.classList.add("wordmate-visible");
-  console.log("[WordMate][UI] showPanel", {
+  console.log("[Lernie][UI] showPanel", {
     pinned: state.panelPinned,
     position: state.panelPosition
   });
@@ -466,9 +470,8 @@ function handleTabSwitch(event) {
 }
 
 async function lookupSelection() {
-  // 妫€鏌ユ墿灞曚笂涓嬫枃鏄惁鏈夋晥
   if (!isExtensionContextValid()) {
-    console.error("[WordMate] Extension context invalidated, please reload the page");
+    console.error("[Lernie] Extension context invalidated, please reload the page");
     handleExtensionContextInvalidated();
     return;
   }
@@ -497,7 +500,7 @@ async function lookupSelection() {
       handleSaveWord({ trigger: "auto", silent: true });
     }
   } catch (error) {
-    console.error("[WordMate] Lookup failed", error);
+    console.error("[Lernie] Lookup failed", error);
     if (error.message.includes("Extension context invalidated")) {
       handleExtensionContextInvalidated();
     } else {
@@ -540,7 +543,7 @@ function renderLookupResult(result) {
 
 function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
   if (!dom.translationBlock) {
-    console.error("[WordMate] ERROR: dom.translationBlock is null or undefined!");
+    console.error("[Lernie] ERROR: dom.translationBlock is null or undefined!");
     return;
   }
   
@@ -567,16 +570,16 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     return;
   }
 
-  // 鎸夎瘝鎬у垎缁勫苟鍚堝苟鐩稿悓璇嶆€х殑閲婁箟
+  // 閹稿鐦濋幀褍鍨庣紒鍕嫙閸氬牆鑻熼惄绋挎倱鐠囧秵鈧呮畱闁插﹣绠?
   const groupedByPos = {};
-  console.log("[WordMate][DEBUG] Original definitions:", items);
+  console.log("[Lernie][DEBUG] Original definitions:", items);
   
   items.forEach((definition, index) => {
     const partLabelRaw = definition.partOfSpeech || "";
     const partLabel = formatPartOfSpeech(partLabelRaw);
     const key = partLabelRaw || "unknown";
     
-    console.log(`[WordMate][DEBUG] Definition ${index}:`, {
+    console.log(`[Lernie][DEBUG] Definition ${index}:`, {
       partOfSpeech: partLabelRaw,
       partLabel: partLabel,
       key: key,
@@ -593,7 +596,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
       };
     }
     
-    // 鏀堕泦鎵€鏈夌炕璇?
+    // 閺€鍫曟肠閹碘偓閺堝鐐曠拠?
     const translations = Array.isArray(definition.translations)
       ? definition.translations.filter(Boolean)
       : [];
@@ -607,9 +610,9 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     }
   });
   
-  console.log("[WordMate][DEBUG] Grouped by POS:", groupedByPos);
+  console.log("[Lernie][DEBUG] Grouped by POS:", groupedByPos);
 
-  // 濡傛灉娌℃湁鍒嗙粍缁撴灉锛屼娇鐢╢allback
+  // 婵″倹鐏夊▽鈩冩箒閸掑棛绮嶇紒鎾寸亯閿涘奔濞囬悽鈺llback
   const groupedEntries = Object.values(groupedByPos);
   if (groupedEntries.length === 0) {
     const fallbackText = fallbackCandidates[0] || fallback || baseAlternatives[0];
@@ -628,7 +631,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
   list.style.gap = "8px";
 
   groupedEntries.slice(0, 6).forEach((group, index) => {
-    console.log(`[WordMate][DEBUG] Rendering group ${index}:`, group);
+    console.log(`[Lernie][DEBUG] Rendering group ${index}:`, group);
     const partLabelRaw = group.partOfSpeech;
     const partLabel = group.partLabel;
     const partColor = getPartOfSpeechColor(partLabelRaw);
@@ -642,7 +645,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     wrapper.style.transition = "all 0.2s ease";
     wrapper.style.cursor = "default";
     
-    // 娣诲姞鎮仠鏁堟灉
+    // 濞ｈ濮為幃顒€浠犻弫鍫熺亯
     wrapper.addEventListener("mouseenter", () => {
       wrapper.style.border = `2px solid ${partColor}40`;
       wrapper.style.background = "rgba(248, 250, 252, 1)";
@@ -675,11 +678,11 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     header.appendChild(part);
     wrapper.appendChild(header);
 
-    // 鍘婚噸骞堕檺鍒剁炕璇戞暟閲?
+    // 閸樺鍣搁獮鍫曟閸掑墎鐐曠拠鎴炴殶闁?
     const uniqueTranslations = Array.from(new Set(group.translations)).slice(0, 6);
     let displayList = uniqueTranslations;
     
-    // 濡傛灉浠嶇劧娌℃湁缈昏瘧锛屼娇鐢╢allback
+    // 婵″倹鐏夋禒宥囧姧濞屸剝婀佺紙鏄忕槯閿涘奔濞囬悽鈺llback
     if (!displayList.length) {
       displayList = fallbackCandidates.slice(0, 6);
     }
@@ -745,9 +748,15 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
     return;
   }
 
-  // 妫€鏌ユ墿灞曚笂涓嬫枃鏄惁鏈夋晥
+  if (trigger === "manual" && !state.notionConfigOk) {
+    if (!silent) {
+      showToast("\u8bf7\u5148\u5728\u8bbe\u7f6e\u4e2d\u6dfb\u52a0 Notion \u914d\u7f6e");
+    }
+    return;
+  }
+
   if (!isExtensionContextValid()) {
-    console.error("[WordMate] Extension context invalidated during save");
+    console.error("[Lernie] Extension context invalidated during save");
     if (!silent) {
       showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
     }
@@ -761,7 +770,7 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
     },
     (response = {}) => {
       if (chrome.runtime.lastError) {
-        console.error("[WordMate] Save local error", chrome.runtime.lastError);
+        console.error("[Lernie] Save local error", chrome.runtime.lastError);
         if (!silent) {
           if (chrome.runtime.lastError.message.includes("Extension context invalidated")) {
             showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
@@ -800,7 +809,7 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
         },
         (notionResponse = {}) => {
           if (chrome.runtime.lastError) {
-            console.error("[WordMate] Notion save error", chrome.runtime.lastError);
+            console.error("[Lernie] Notion save error", chrome.runtime.lastError);
             showToast("\u672c\u5730\u5df2\u4fdd\u5b58\uff0c\u4f46\u540c\u6b65 Notion \u5931\u8d25");
             return;
           }
@@ -847,7 +856,7 @@ function playPronunciation(source) {
       const audio = new Audio(audioUrl);
       audio.play().catch(() => synthesizeSpeech(state.lastLookup?.word || state.selectionText));
     } catch (error) {
-      console.warn("[WordMate] Audio playback failed, fallback to speech synthesis.", error);
+      console.warn("[Lernie] Audio playback failed, fallback to speech synthesis.", error);
       synthesizeSpeech(state.lastLookup?.word || state.selectionText);
     }
     return;
@@ -867,7 +876,7 @@ function synthesizeSpeech(text) {
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   } catch (error) {
-    console.warn("[WordMate] speechSynthesis failed", error);
+    console.warn("[Lernie] speechSynthesis failed", error);
     showToast("\u8bed\u97f3\u5408\u6210\u4e0d\u53ef\u7528");
   }
 }
@@ -952,7 +961,7 @@ function applySettings(settings) {
 
 async function bootstrapSettings() {
   if (!isExtensionContextValid()) {
-    console.warn("[WordMate] Extension context invalidated, skipping settings bootstrap");
+    console.warn("[Lernie] Extension context invalidated, skipping settings bootstrap");
     return;
   }
   
@@ -962,7 +971,7 @@ async function bootstrapSettings() {
     });
     applySettings(settings || {});
   } catch (error) {
-    console.warn("[WordMate] Failed to bootstrap settings", error);
+    console.warn("[Lernie] Failed to bootstrap settings", error);
   }
 }
 
@@ -994,7 +1003,7 @@ function initMessageListener() {
 
 function initContextMenuIntegration() {
   if (!isExtensionContextValid()) {
-    console.warn("[WordMate] Extension context invalidated, skipping context menu integration");
+    console.warn("[Lernie] Extension context invalidated, skipping context menu integration");
     return;
   }
   chrome.runtime.sendMessage({ type: "WORDMATE_CONTEXT_READY" });
