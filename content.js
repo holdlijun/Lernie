@@ -1,4 +1,4 @@
-/* global chrome */
+﻿/* global chrome */
 
 const FLOAT_TRIGGER_OFFSET = 12;
 const PANEL_DEFAULT_POSITION = { x: 24, y: 24 };
@@ -46,20 +46,20 @@ const PART_OF_SPEECH_LABELS = {
 };
 
 const PART_OF_SPEECH_COLORS = {
-  noun: "#3b82f6",      // 蓝色 - 名词
-  verb: "#ef4444",      // 红色 - 动词
-  adjective: "#10b981",  // 绿色 - 形容词
-  adverb: "#f59e0b",    // 橙色 - 副词
-  pronoun: "#8b5cf6",   // 紫色 - 代词
-  preposition: "#06b6d4", // 青色 - 介词
-  conjunction: "#84cc16", // 青绿色 - 连词
-  interjection: "#f97316", // 橙红色 - 感叹词
-  determiner: "#6366f1", // 靛蓝色 - 限定词
-  article: "#14b8a6",   // 蓝绿色 - 冠词
-  prefix: "#64748b",    // 灰色 - 前缀
-  suffix: "#64748b",    // 灰色 - 后缀
-  phrasalverb: "#dc2626", // 深红色 - 动词短语
-  auxiliaryverb: "#b91c1c" // 深红色 - 助动词
+  noun: "#3b82f6",      // 钃濊壊 - 鍚嶈瘝
+  verb: "#ef4444",      // 绾㈣壊 - 鍔ㄨ瘝
+  adjective: "#10b981",  // 缁胯壊 - 褰㈠璇?
+  adverb: "#f59e0b",    // 姗欒壊 - 鍓瘝
+  pronoun: "#8b5cf6",   // 绱壊 - 浠ｈ瘝
+  preposition: "#06b6d4", // 闈掕壊 - 浠嬭瘝
+  conjunction: "#84cc16", // 闈掔豢鑹?- 杩炶瘝
+  interjection: "#f97316", // 姗欑孩鑹?- 鎰熷徆璇?
+  determiner: "#6366f1", // 闈涜摑鑹?- 闄愬畾璇?
+  article: "#14b8a6",   // 钃濈豢鑹?- 鍐犺瘝
+  prefix: "#64748b",    // 鐏拌壊 - 鍓嶇紑
+  suffix: "#64748b",    // 鐏拌壊 - 鍚庣紑
+  phrasalverb: "#dc2626", // 娣辩孩鑹?- 鍔ㄨ瘝鐭
+  auxiliaryverb: "#b91c1c" // 娣辩孩鑹?- 鍔╁姩璇?
 };
 
 function formatPartOfSpeech(value) {
@@ -72,7 +72,7 @@ function formatPartOfSpeech(value) {
 
 function getPartOfSpeechColor(value) {
   if (!value) {
-    return "#64748b"; // 默认灰色
+    return "#64748b"; // 榛樿鐏拌壊
   }
   const normalized = value.toLowerCase().replace(/[\s-]+/g, "");
   return PART_OF_SPEECH_COLORS[normalized] || "#64748b";
@@ -93,20 +93,20 @@ function isExtensionContextValid() {
 function handleExtensionContextInvalidated() {
   console.warn("[WordMate] Extension context invalidated, attempting to reinitialize...");
   
-  // 隐藏面板和触发器
+  // 闅愯棌闈㈡澘鍜岃Е鍙戝櫒
   hidePanel();
   hideTrigger();
   
-  // 清理状态
+  // 娓呯悊鐘舵€?
   state.selectionText = "";
   state.selectionContext = "";
   state.selectionRect = null;
   state.lastLookup = null;
   
-  // 显示提示信息
+  // 鏄剧ず鎻愮ず淇℃伅
   showToast("\u6269\u5c55\u5df2\u5931\u6548\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5");
   
-  // 尝试重新初始化（延迟执行）
+  // 灏濊瘯閲嶆柊鍒濆鍖栵紙寤惰繜鎵ц锛?
   setTimeout(() => {
     if (isExtensionContextValid()) {
       console.log("[WordMate] Extension context restored, reinitializing...");
@@ -181,7 +181,7 @@ function createPanel() {
         <p class="wordmate-panel-phonetic" id="wordmate-phonetic"></p>
       </div>
       <button class="wordmate-icon-button" id="wordmate-audio-button" title="\u64ad\u653e\u53d1\u97f3 (Shift+P)" type="button">\uD83D\uDD0A</button>
-      <button class="wordmate-icon-button" id="wordmate-pin-button" title="\u56fa\u5b9a\u9762\u677f" type="button">📌</button>
+      <button class="wordmate-icon-button" id="wordmate-pin-button" title="\u56fa\u5b9a\u9762\u677f" type="button">\uD83D\uDCCC</button>
       <button class="wordmate-icon-button" id="wordmate-close-button" title="\u5173\u95ed (Esc)" type="button">\u00d7</button>
     </div>
     <div class="wordmate-tabs" role="tablist">
@@ -366,11 +366,8 @@ function positionPanelNearSelection() {
     return;
   }
 
-  const centerX = window.scrollX + window.innerWidth / 2;
-  const centerY = window.scrollY + window.innerHeight / 2;
-
-  dom.panel.style.left = `${centerX}px`;
-  dom.panel.style.top = `${centerY}px`;
+  dom.panel.style.left = "50%";
+  dom.panel.style.top = "50%";
   dom.panel.style.transform = "translate(-50%, -50%)";
   state.panelPosition = null;
 }
@@ -381,6 +378,10 @@ function showPanel() {
   positionPanelNearSelection();
   dom.panel.style.display = "flex";
   dom.panel.classList.add("wordmate-visible");
+  console.log("[WordMate][UI] showPanel", {
+    pinned: state.panelPinned,
+    position: state.panelPosition
+  });
   document.addEventListener("mousedown", handleOutsideClick, true);
   document.addEventListener("keydown", handleGlobalKey);
 }
@@ -390,6 +391,9 @@ function hidePanel() {
 
   dom.panel.classList.remove("wordmate-visible");
   dom.panel.style.display = "none";
+  if (!state.panelPinned) {
+    dom.panel.style.transform = "translate(-50%, -50%)";
+  }
   hideTrigger();
   document.removeEventListener("mousedown", handleOutsideClick, true);
   document.removeEventListener("keydown", handleGlobalKey);
@@ -416,7 +420,7 @@ function handleGlobalKey(event) {
 function updatePinVisualState() {
   const pinButton = dom.panel?.querySelector("#wordmate-pin-button");
   if (pinButton) {
-    pinButton.textContent = "📌";
+    pinButton.textContent = "\uD83D\uDCCC";
     pinButton.title = state.panelPinned ? "\u53d6\u6d88\u56fa\u5b9a" : "\u56fa\u5b9a\u9762\u677f";
     pinButton.setAttribute("aria-pressed", state.panelPinned ? "true" : "false");
   }
@@ -428,9 +432,12 @@ function updatePinVisualState() {
 function togglePanelPinned() {
   state.panelPinned = !state.panelPinned;
   if (state.panelPinned && dom.panel) {
-    const left = parseFloat(dom.panel.style.left) || dom.panel.offsetLeft || 0;
-    const top = parseFloat(dom.panel.style.top) || dom.panel.offsetTop || 0;
+    const rect = dom.panel.getBoundingClientRect();
+    const left = rect.left;
+    const top = rect.top;
     dom.panel.style.transform = "";
+    dom.panel.style.left = `${left}px`;
+    dom.panel.style.top = `${top}px`;
     state.panelPosition = { x: left, y: top };
   } else {
     state.panelPosition = null;
@@ -459,7 +466,7 @@ function handleTabSwitch(event) {
 }
 
 async function lookupSelection() {
-  // 检查扩展上下文是否有效
+  // 妫€鏌ユ墿灞曚笂涓嬫枃鏄惁鏈夋晥
   if (!isExtensionContextValid()) {
     console.error("[WordMate] Extension context invalidated, please reload the page");
     handleExtensionContextInvalidated();
@@ -560,7 +567,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     return;
   }
 
-  // 按词性分组并合并相同词性的释义
+  // 鎸夎瘝鎬у垎缁勫苟鍚堝苟鐩稿悓璇嶆€х殑閲婁箟
   const groupedByPos = {};
   console.log("[WordMate][DEBUG] Original definitions:", items);
   
@@ -586,7 +593,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
       };
     }
     
-    // 收集所有翻译
+    // 鏀堕泦鎵€鏈夌炕璇?
     const translations = Array.isArray(definition.translations)
       ? definition.translations.filter(Boolean)
       : [];
@@ -602,7 +609,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
   
   console.log("[WordMate][DEBUG] Grouped by POS:", groupedByPos);
 
-  // 如果没有分组结果，使用fallback
+  // 濡傛灉娌℃湁鍒嗙粍缁撴灉锛屼娇鐢╢allback
   const groupedEntries = Object.values(groupedByPos);
   if (groupedEntries.length === 0) {
     const fallbackText = fallbackCandidates[0] || fallback || baseAlternatives[0];
@@ -635,7 +642,7 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     wrapper.style.transition = "all 0.2s ease";
     wrapper.style.cursor = "default";
     
-    // 添加悬停效果
+    // 娣诲姞鎮仠鏁堟灉
     wrapper.addEventListener("mouseenter", () => {
       wrapper.style.border = `2px solid ${partColor}40`;
       wrapper.style.background = "rgba(248, 250, 252, 1)";
@@ -668,11 +675,11 @@ function renderDefinitions(definitions, fallback, fallbackAlternatives = []) {
     header.appendChild(part);
     wrapper.appendChild(header);
 
-    // 去重并限制翻译数量
+    // 鍘婚噸骞堕檺鍒剁炕璇戞暟閲?
     const uniqueTranslations = Array.from(new Set(group.translations)).slice(0, 6);
     let displayList = uniqueTranslations;
     
-    // 如果仍然没有翻译，使用fallback
+    // 濡傛灉浠嶇劧娌℃湁缈昏瘧锛屼娇鐢╢allback
     if (!displayList.length) {
       displayList = fallbackCandidates.slice(0, 6);
     }
@@ -738,7 +745,7 @@ function handleSaveWord({ trigger = "manual", silent = false } = {}) {
     return;
   }
 
-  // 检查扩展上下文是否有效
+  // 妫€鏌ユ墿灞曚笂涓嬫枃鏄惁鏈夋晥
   if (!isExtensionContextValid()) {
     console.error("[WordMate] Extension context invalidated during save");
     if (!silent) {
@@ -1008,6 +1015,8 @@ function initialize() {
 }
 
 initialize();
+
+
 
 
 
